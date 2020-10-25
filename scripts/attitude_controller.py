@@ -171,7 +171,7 @@ class Edrone():
         # Complete the equations for pitch and yaw axis
 
         # Also convert the range of 1000 to 2000 to 0 to 1024 for throttle here itself
-        self.throttle = (self.setpoint_cmd[3] * (1024/1000)) - 1024
+        self.throttle = (self.setpoint_cmd[3] * 1.024) - 1024
 
         # Calculating the error
         self.error[0] = self.setpoint_euler[0] - self.drone_orientation_euler[0]
@@ -237,7 +237,7 @@ class Edrone():
 if __name__ == '__main__':
 
     e_drone = Edrone()
-    r = rospy.Rate(e_drone.sample_time)  # specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
+    r = rospy.Rate(1/e_drone.sample_time)  # specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
     while not rospy.is_shutdown():
         e_drone.pid()
         r.sleep()
