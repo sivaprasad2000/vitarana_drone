@@ -19,9 +19,9 @@ class Edrone():
 
         # Format for drone_command
         self.cmd_drone = edrone_cmd()
-        self.cmd_drone.rcRoll = 0
-        self.cmd_drone.rcPitch = 0
-        self.cmd_drone.rcYaw = 0
+        self.cmd_drone.rcRoll = 1500
+        self.cmd_drone.rcPitch = 1500
+        self.cmd_drone.rcYaw = 1500
         self.cmd_drone.rcThrottle = 0
 
         # The altitude of the drone

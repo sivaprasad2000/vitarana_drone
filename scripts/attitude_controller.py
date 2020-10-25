@@ -24,6 +24,7 @@ import rospy
 import time
 import tf
 
+value_of_pi = 3.141592653589
 
 class Edrone():
     """docstring for Edrone"""
@@ -40,7 +41,7 @@ class Edrone():
 
         # This is the setpoint that will be received from the drone_command in the range from 1000 to 2000
         # [r_setpoint, p_setpoint, y_setpoint]
-        self.setpoint_cmd = [0.0, 0.0, 0.0, 0.0]
+        self.setpoint_cmd = [1500.0, 1500.0, 1500.0, 1500.0]
 
         # The setpoint of orientation in euler angles at which you want to stabilize the drone
         # [r_setpoint, p_psetpoint, y_setpoint]
@@ -58,9 +59,9 @@ class Edrone():
 
         # initial setting of Kp, Kd and ki for [roll, pitch, yaw]. eg: self.Kp[2] corresponds to Kp value in yaw axis
         # after tuning and computing corresponding PID parameters, change the parameters
-        self.Kp = [0, 0, 0]
-        self.Ki = [0, 0, 0]
-        self.Kd = [0, 0, 0]
+        self.Kp = [4.2, 4.2, 400]
+        self.Ki = [0.2, 0.2, 0]
+        self.Kd = [4.5, 4.5, 0]
         # -----------------------Add other required variables for pid here ----------------------------------------------
         #
         self.throttle = 0
@@ -161,12 +162,12 @@ class Edrone():
         #   9. Add error_sum to use for integral component
 
         # Converting quaternion to euler angles
-        (self.drone_orientation_euler[0], self.drone_orientation_euler[1], self.drone_orientation_euler[2]) = tf.transformations.euler_from_quaternion([self.drone_orientation_quaternion[0], self.drone_orientation_quaternion[1], self.drone_orientation_quaternion[2], self.drone_orientation_quaternion[3]])
+        (self.drone_orientation_euler[1], self.drone_orientation_euler[0], self.drone_orientation_euler[2]) = tf.transformations.euler_from_quaternion([self.drone_orientation_quaternion[0], self.drone_orientation_quaternion[1], self.drone_orientation_quaternion[2], self.drone_orientation_quaternion[3]])
 
         # Convertng the range from 1000 to 2000 in the range of -100 degree to 100 degree for axes
-        self.setpoint_euler[0] = self.setpoint_cmd[0] * 0.2 - 300
-        self.setpoint_euler[1] = self.setpoint_cmd[1] * 0.2 - 300
-        self.setpoint_euler[2] = self.setpoint_cmd[2] * 0.2 - 300
+        self.setpoint_euler[0] = (self.setpoint_cmd[0] * 0.2) - 300
+        self.setpoint_euler[1] = (self.setpoint_cmd[1] * 0.2) - 300
+        self.setpoint_euler[2] = (self.setpoint_cmd[2] * 0.2) - 300
 
         # Complete the equations for pitch and yaw axis
 
@@ -174,9 +175,11 @@ class Edrone():
         self.throttle = (self.setpoint_cmd[3] * 1.024) - 1024
 
         # Calculating the error
-        self.error[0] = self.setpoint_euler[0] - self.drone_orientation_euler[0]
-        self.error[1] = self.setpoint_euler[1] - self.drone_orientation_euler[1]
-        self.error[2] = self.setpoint_euler[2] - self.drone_orientation_euler[2]
+        self.error[0] = self.setpoint_euler[0] - (self.drone_orientation_euler[0]*(180/value_of_pi))
+        self.error[1] = self.setpoint_euler[1] - (self.drone_orientation_euler[1]*(180/value_of_pi))
+        self.error[2] = self.setpoint_euler[2] - (self.drone_orientation_euler[2]*(180/value_of_pi))
+
+        print(str(self.error[1]))
 
         self.error_sum[0] = self.error_sum[0] + self.error[0]
         self.error_sum[1] = self.error_sum[1] + self.error[1]
@@ -187,16 +190,18 @@ class Edrone():
         self.out_pitch = (self.Kp[1] * self.error[1]) + (self.Ki[1] * self.error_sum[1]) + ((self.Kd[1] * (self.error[1] - self.prev_values[1]))/self.sample_time)
         self.out_yaw = (self.Kp[2] * self.error[2]) + (self.Ki[2] * self.error_sum[2]) + ((self.Kd[2] * (self.error[2] - self.prev_values[2]))/self.sample_time)
 
+        # print("error : " + str(self.error[0]) + ", out_raw : " + str(self.out_roll))
+
         # Changing the previous sum value
         self.prev_values[0] = self.error[0]
         self.prev_values[1] = self.error[1]
         self.prev_values[2] = self.error[2]
 
         # Giving pwm values
-        self.pwm_cmd.prop1 = self.throttle + self.out_roll - self.out_pitch + self.out_yaw
-        self.pwm_cmd.prop2 = self.throttle + self.out_roll + self.out_pitch - self.out_yaw
-        self.pwm_cmd.prop3 = self.throttle - self.out_roll + self.out_pitch + self.out_yaw
-        self.pwm_cmd.prop4 = self.throttle - self.out_roll - self.out_pitch - self.out_yaw
+        self.pwm_cmd.prop1 = self.throttle - self.out_roll + self.out_pitch - self.out_yaw
+        self.pwm_cmd.prop2 = self.throttle - self.out_roll - self.out_pitch + self.out_yaw
+        self.pwm_cmd.prop3 = self.throttle + self.out_roll - self.out_pitch - self.out_yaw
+        self.pwm_cmd.prop4 = self.throttle + self.out_roll + self.out_pitch + self.out_yaw
 
         if self.pwm_cmd.prop1 > self.max_values[0]:
             self.pwm_cmd.prop1 = self.max_values[0]
