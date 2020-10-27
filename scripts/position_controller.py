@@ -86,21 +86,6 @@ class Edrone():
     # ----------------------------------------------------------------------------------------------------------------------
 
     def pid(self):
-        # -----------------------------Write the PID algorithm here--------------------------------------------------------------
-
-        # Steps:
-        #   1. Convert the quaternion format of orientation to euler angles
-        #   2. Convert the setpoint that is in the range of 1000 to 2000 into angles with the limit from -10 degree to 10 degree in euler angles
-        #   3. Compute error in each axis. eg: error[0] = self.setpoint_euler[0] - self.drone_orientation_euler[0], where error[0] corresponds to error in roll...
-        #   4. Compute the error (for proportional), change in error (for derivative) and sum of errors (for integral) in each axis. Refer "Understanding PID.pdf" to understand PID equation.
-        #   5. Calculate the pid output required for each axis. For eg: calcuate self.out_roll, self.out_pitch, etc.
-        #   6. Use this computed output value in the equations to compute the pwm for each propeller. LOOK OUT FOR SIGN (+ or -). EXPERIMENT AND FIND THE CORRECT SIGN
-        #   7. Don't run the pid continously. Run the pid only at the a sample time. self.sampletime defined above is for this purpose. THIS IS VERY IMPORTANT.
-        #   8. Limit the output value and the final command value between the maximum(0) and minimum(1024)range before publishing. For eg : if self.pwm_cmd.prop1 > self.max_values[1]:
-        #                                                                                                                                      self.pwm_cmd.prop1 = self.max_values[1]
-        #   8. Update previous errors.eg: self.prev_error[1] = error[1] where index 1 corresponds to that of pitch (eg)
-        #   9. Add error_sum to use for integral component
-
 
         # Calculating the error
         self.error = self.set_altitude - self.altitude
