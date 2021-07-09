@@ -15,9 +15,8 @@ import tf
 class Edrone():
     """docstring for Edrone"""
     def __init__(self):
-        rospy.init_node('position_controller')  # initializing ros node with name drone_control
+        rospy.init_node('position_controller')  
 
-        # Format for drone_command
         self.cmd_drone = edrone_cmd()
         self.cmd_drone.rcRoll = 1500
         self.cmd_drone.rcPitch = 1500
@@ -36,7 +35,7 @@ class Edrone():
         self.Kp = [4000000, 50]
         self.Ki = [0, 0.32]
         self.Kd = [5000000, 80]
-        # -----------------------Add other required variables for pid here ----------------------------------------------
+
         self.error = [0, 0, 0]
         self.prev_error = [0, 0, 0]
         self.error_sum = [0, 0, 0]
@@ -47,28 +46,14 @@ class Edrone():
 
         self.min_value = [1450, 1450, 1000]
         self.max_value = [1550, 1550, 2000]
-        #
-        
-        # Hint : Add variables for storing previous errors in each axis, like self.prev_values = [0,0,0] where corresponds to [roll, pitch, yaw]
-        #        Add variables for limiting the values like self.max_values = [1024, 1024, 1024, 1024] corresponding to [prop1, prop2, prop3, prop4]
-        #                                                   self.min_values = [0, 0, 0, 0] corresponding to [prop1, prop2, prop3, prop4]
-        #
-        # ----------------------------------------------------------------------------------------------------------
 
-        # # This is the sample time in which you need to run pid. Choose any time which you seem fit. Remember the stimulation step time is 50 ms
         self.sample_time = 0.060  # in seconds
 
-        # Publishing /edrone/pwm, /roll_error, /pitch_error, /yaw_error
+
         self.cmd_pub = rospy.Publisher('/drone_command', edrone_cmd, queue_size=1)
-        # ------------------------Add other ROS Publishers here-----------------------------------------------------
 
-        # -----------------------------------------------------------------------------------------------------------
 
-        # Subscribing to /drone_command, imu/data, /pid_tuning_roll, /pid_tuning_pitch, /pid_tuning_yaw
         rospy.Subscriber('/edrone/gps', NavSatFix, self.gps_callback)
-        # -------------------------Add other ROS Subscribers here----------------------------------------------------
-        # ------------------------------------------------------------------------------------------------------------
-
 
     def gps_callback(self, msg):
         self.latitude = msg.latitude
@@ -126,18 +111,13 @@ class Edrone():
         else:
             self.cmd_drone.rcThrottle = self.cmd_drone.rcThrottle
 
-        #
-        #
-        #
-        # ------------------------------------------------------------------------------------------------------------------------
-
         self.cmd_pub.publish(self.cmd_drone)
 
 
 if __name__ == '__main__':
 
     e_drone = Edrone()
-    r = rospy.Rate(1/e_drone.sample_time)  # specify rate in Hz based upon your desired PID sampling time, i.e. if desired sample time is 33ms specify rate as 30Hz
+    r = rospy.Rate(1/e_drone.sample_time) 
     while not rospy.is_shutdown():
         e_drone.pid()
         r.sleep()
